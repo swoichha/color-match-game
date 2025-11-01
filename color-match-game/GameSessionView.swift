@@ -53,7 +53,7 @@ struct GameSessionView: View {
                         .fontWeight(.bold)
                 }
             }
-            .padding()
+            .padding(.horizontal)
             
             // Current challenge
             VStack(spacing: 20) {
@@ -85,6 +85,7 @@ struct GameSessionView: View {
                             .background(colorOption.color)
                             .cornerRadius(12)
                     }
+                    .disabled(!gameEngine.gameState.isGameActive)
                 }
             }
             .padding(.horizontal)
@@ -101,7 +102,7 @@ struct GameSessionView: View {
                             .foregroundColor(.red)
                     }
                     
-                    Button("Start Game") {
+                    Button(gameEngine.gameState.timeRemaining == difficulty.timeLimit ? "Start Game" : "Play Again") {
                         gameEngine.startGame()
                     }
                     .buttonStyle(PrimaryButtonStyle())
@@ -111,16 +112,26 @@ struct GameSessionView: View {
                     }
                     .buttonStyle(SecondaryButtonStyle())
                 }
+                .padding(.horizontal)
             }
         }
-        .navigationTitle("Color Match")
+        .navigationBarTitle("Color Match", displayMode: .inline)
         .navigationBarBackButtonHidden(true)
-        .onAppear {
-            // Auto-start for now, we'll add proper start screen later
-            // gameEngine.startGame()
-        }
+        .navigationBarItems(leading: backButton)
         .onDisappear {
             gameEngine.stopGame()
+        }
+    }
+    
+    private var backButton: some View {
+        Button(action: {
+            presentationMode.wrappedValue.dismiss()
+        }) {
+            HStack {
+                Image(systemName: "chevron.left")
+                Text("Back")
+            }
+            .foregroundColor(.blue)
         }
     }
     
