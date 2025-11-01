@@ -68,25 +68,140 @@ struct SecondaryButtonStyle: ButtonStyle {
 }
 
 struct GameView: View {
+    @State private var selectedDifficulty: DifficultyLevel?
+    @State private var navigateToGame = false
+    
     var body: some View {
-        VStack {
-            Text("Game Screen")
+        VStack(spacing: 30) {
+            Text("Select Difficulty")
                 .font(.title)
-            Text("Coming soon...")
+                .fontWeight(.bold)
+                .padding(.top, 40)
+            
+            Text("Choose your challenge level")
                 .foregroundColor(.gray)
+            
+            Spacer()
+            
+            VStack(spacing: 20) {
+                ForEach(DifficultyLevel.allCases, id: \.self) { difficulty in
+                    DifficultyButton(
+                        difficulty: difficulty,
+                        isSelected: selectedDifficulty == difficulty,
+                        action: {
+                            selectedDifficulty = difficulty
+                        }
+                    )
+                }
+            }
+            .padding(.horizontal)
+            
+            Spacer()
+            
+            Button("Start Game") {
+                navigateToGame = true
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .disabled(selectedDifficulty == nil)
+            .opacity(selectedDifficulty == nil ? 0.6 : 1.0)
+            
+            NavigationLink(
+                "",
+                destination: GameSessionView(difficulty: selectedDifficulty ?? .easy),
+                isActive: $navigateToGame
+            )
         }
-        .navigationTitle("Game")
+        .navigationTitle("Select Difficulty")
+        .padding()
+    }
+}
+
+struct DifficultyButton: View {
+    let difficulty: DifficultyLevel
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(difficulty.rawValue)
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                    
+                    Text("\(difficulty.timeLimit) seconds • \(difficulty.pointsPerAnswer) pt/answer")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                
+                Spacer()
+                
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                }
+            }
+            .padding()
+            .background(isSelected ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+            )
+        }
+        .foregroundColor(.primary)
     }
 }
 
 struct HighScoresView: View {
+    @State private var highScores = HighScores(easy: 0, medium: 0, hard: 0)
+    
     var body: some View {
-        VStack {
+        VStack(spacing: 30) {
             Text("High Scores")
                 .font(.title)
-            Text("Coming soon...")
-                .foregroundColor(.gray)
+                .fontWeight(.bold)
+                .padding(.top)
+            
+            VStack(spacing: 20) {
+                ScoreRow(difficulty: .easy, score: highScores.easy)
+                ScoreRow(difficulty: .medium, score: highScores.medium)
+                ScoreRow(difficulty: .hard, score: highScores.hard)
+            }
+            .padding(.horizontal)
+            
+            Spacer()
+            
+            Button("Reset Scores") {
+                // Will implement reset functionality later
+                highScores = HighScores(easy: 0, medium: 0, hard: 0)
+            }
+            .buttonStyle(SecondaryButtonStyle())
+            .padding()
         }
         .navigationTitle("High Scores")
+    }
+}
+
+struct ScoreRow: View {
+    let difficulty: DifficultyLevel
+    let score: Int
+    
+    var body: some View {
+        HStack {
+            Text(difficulty.rawValue)
+                .font(.headline)
+                .foregroundColor(.primary)
+            
+            Spacer()
+            
+            Text("\(score) points")
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(.blue)
+        }
+        .padding()
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(10)
     }
 }
